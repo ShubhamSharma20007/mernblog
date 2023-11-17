@@ -1,8 +1,9 @@
 var express = require('express');
 var router = express.Router();
 const userModel = require("./users")
-const blogModel = require("./blogs")
-const bcrypt = require("bcrypt")
+const blogModel = require("./blogModel")
+const bcrypt = require("bcrypt");
+const { default: mongoose } = require('mongoose');
     // const { getAllusers, registerController, loginController } = require("../controllers/userController")
 
 // USER ROUTES
@@ -118,6 +119,17 @@ router.post("/users/login", async(req, res) => {
 
 // get single blogs
 router.get("/blogs/get-blog/:id", async(req, res) => {
+   try {
+    const {id} = req.params
+    const data = await blogModel.findById(id)
+    return res.status(201).send({
+        message: "Blogs Found",
+        success: true,
+        data,
+    })
+   } catch (error) {
+    console.log(error)
+   }
 
 })
 
@@ -145,19 +157,77 @@ router.get("/blogs/all-blog", async(req, res) => {
 
 
 // post create blog
-router.post("/blogs/create-blog", async(req, res) => {
-
-})
+router.post("/blogs/create-blog", async (req, res) => {
+    try {
+      const { title, description, image, user } = req.body;
+  
+      if (!title || !description || !image || !user) {
+        return res.status(400).send({
+          message: "Fill all fields",
+          success: false
+        });
+      }
+  
+      const existingUser = await userModel.findById(user);
+  
+      if (!existingUser) {
+        return res.status(404).send({
+          message: "User not found",
+          success: false
+        });
+      }
+  
+      const data = await blogModel.create({ title, description, image, user });
+  
+      // Assuming 'blog' is an array field in the userModel
+      existingUser.blog.push(data._id);
+      await existingUser.save();
+  
+      res.status(201).send({
+        message: "Blog Created Successfully",
+        success: true,
+        data
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({
+        message: "Internal Server Error",
+        success: false
+      });
+    }
+  });
 
 // update blog
 router.put("/blogs/update-blog/:id", async(req, res) => {
+try {
+    const {id} = req.params;
+    const{title,description,image} =  req.body;
+    const data  = await blogModel.findByIdAndUpdate(id,{...req.body},{new:true});
+    return res.status(200).send({
+        message:"Blog Updated Successfully",
+        success:true,
+        data
+    })
 
+} catch (error) {
+    console.log(error)
+}
 })
 
 
 // delete blog
-router.delete("/blogs/update-blog/:id", async(req, res) => {
-
+router.delete("/blogs/delete-blog/:id", async(req, res) => {
+    try {
+        const {id} = req.params
+        const data = await blogModel.findByIdAndDelete(id)
+        return res.status(200).send({
+            message:"Blog Deleted Successfully",
+            success:true,
+            data
+        })
+    } catch (err){
+        console.log(err)
+        }
 })
 
 

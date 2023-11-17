@@ -16,6 +16,11 @@ const structure = new mongoose.Schema({
     date: {
         type: Date,
         default: Date.now
+    },
+    blog:{
+        type:mongoose.Types.ObjectId,
+        ref: "Blog",
+        // required:[true,"blog is required"]
     }
 
 })

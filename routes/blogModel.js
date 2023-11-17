@@ -16,6 +16,11 @@ const BlogSchema = new mongoose.Schema({
     date: {
         type: Date,
         default: Date.now
+    },
+    user:{
+        type:mongoose.Types.ObjectId,
+        ref:"Users",
+        // required :[true, 'user is required']
     }
 
 })
