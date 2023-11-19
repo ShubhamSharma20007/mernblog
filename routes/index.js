@@ -3,7 +3,7 @@ var router = express.Router();
 const userModel = require("./users")
 const blogModel = require("./blogModel")
 const bcrypt = require("bcrypt");
-const { default: mongoose } = require('mongoose');
+const  mongoose = require('mongoose');
     // const { getAllusers, registerController, loginController } = require("../controllers/userController")
 
 // USER ROUTES
@@ -219,17 +219,45 @@ try {
 router.delete("/blogs/delete-blog/:id", async(req, res) => {
     try {
         const {id} = req.params
-        const data = await blogModel.findByIdAndDelete(id)
-        return res.status(200).send({
-            message:"Blog Deleted Successfully",
-            success:true,
-            data
+        const data = await blogModel.findById(id).populate('user')
+        data.user.forEach(item=>{
+            // data kai under user array kai under blog ko pull kiya 
+            const val = item.blog.pull(data)
+            return res.status(200).send({
+                message:"Blog Deleted Successfully",
+                success:true,
+                data:val
+            })
+            
         })
+        
     } catch (err){
         console.log(err)
         }
 })
 
+
+// Get User Blog
+router.get("/user/user-blog/:id",async(req,res)=>{
+    try {
+        const model = await userModel.findById(req.params.id).populate('blog')
+        if(!model){
+            return res.status(404).send({
+                message:"User Not Found",
+                success:false
+            })
+        }
+
+        return res.status(200).send({
+            message:"blog found !",
+            success :true,
+            data :model
+            
+        })
+    } catch (error) {
+        console.log(error)
+    }
+})
 
 
 module.exports = router;
